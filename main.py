@@ -53,10 +53,15 @@ def getLoginDetails():
 
 @app.route("/")
 def root():
+    search = request.args.get('searchQuery')
     loggedIn, firstName, noOfItems = getLoginDetails()
     with sqlite3.connect('database.db') as conn:
         cur = conn.cursor()
-        cur.execute('SELECT productId, name, price, description, image, stock FROM products')
+        if search is None:
+            cur.execute('SELECT productId, name, price, description, image, stock FROM products')
+        
+        else:
+            cur.execute('SELECT productId, name, price, description, image, stock FROM products WHERE name LIKE ?',('%'+search+'%',))
         itemData = cur.fetchall()
         cur.execute('SELECT categoryId, name FROM categories')
         categoryData = cur.fetchall()
@@ -64,21 +69,29 @@ def root():
     return render_template('home.html', itemData=itemData, loggedIn=loggedIn, firstName=firstName, noOfItems=noOfItems, categoryData=categoryData)
 
 
+
+
+
+@app.route("/admin")
+def adminlogin():
+
+    return render_template("adminlogin.html")
+
 @app.route('/admin/login',methods= ["POST"])
 def admin_login():
     data = request.get_json()
-    admin = Admin(user=data["user"],password=data["password"])
+    admin = Admin(email=data["email"],password=data["password"])
     if admin.status:
         session["type"] = "admin"
-        session["user"] = data["user"]
+        session["user"] = data["email"]
         
-        return {"status":200}
+        return json.dumps({"status":200})
     else:
         raise InvalidUsage('Invalid Credentials', status_code=415)
 
 
 
-@app.route("/add")
+@app.route("/add.html")
 def admin():
     if "user" in session and session["type"] == "admin":
         admin = Admin()
@@ -288,20 +301,35 @@ def removeFromCart():
     productId = int(request.args.get('productId'))
     cust = Customer(session["email"])
     cust.removecart(productId)
+    
     return redirect(url_for('root'))
 
 #################################################################
 
 
+@app.route("/removeFromOrders")
+def removeFromOrders():
+    if 'email' not in session:
+        return redirect(url_for('loginForm'))
+    productId = int(request.args.get('productId'))
+    cust = Customer(session["email"])
+
+    cust.removeorder(productId)
+    return redirect(url_for('root'))
+
+
+
+
 @app.route('/checkout')
 def checkout():
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if 'email' not in session:
         return redirect(url_for('loginForm'))
 
     cust = Customer(session["email"])
     data = cust.placingorder()
-    return json.dumps(data)
+    return render_template("checkout.html",totalprice=data["totalprice"])
+
 
 
 
@@ -343,6 +371,10 @@ def myorders():
         #call orders
         cust = Customer(session["email"])
         orders = cust.get_order()
+    loggedIn, firstName, noOfItems = getLoginDetails()
+    # import pdb; pdb.set_trace()
+    # load html
+    return render_template("manageorder.html", products = orders["products"], totalPrice=orders["price"], loggedIn=loggedIn, firstName=firstName, noOfItems=noOfItems)
 
     return json.dumps(orders)
 

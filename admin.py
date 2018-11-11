@@ -2,18 +2,18 @@ import sqlite3
 
 
 class Admin(object):
-    def __init__(self,user=None,password=None):
-        if(user is None and password is None):
-            self.status = self._login(user,password)
+    def __init__(self,email=None,password=None):
+        if(email is None and password is None):
+            self.status = self._login(email,password)
         else:
             self.status=True
         return 
 
 
-    def _login(self,user,password):
+    def _login(self,email,password):
         with sqlite3.connect('database.db') as conn:
             cur = conn.cursor()
-            cur.execute("SELECT * FROM admin WHERE user = ? AND password = ?",(user,password))
+            cur.execute("SELECT * FROM admin WHERE email = ? AND password = ?",(email,password))
             categories = cur.fetchall()
         
         return len(categories)==0

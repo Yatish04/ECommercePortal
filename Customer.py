@@ -98,17 +98,15 @@ class Customer(object):
         con.close()
         return msg
 
-    def _manage_order(self):
-        #create an object of cancel item id
-        #pass
-        # cursor = self.db.cursor
-        # cursor.execute('''DELETE FROM orders WHERE userId = ? AND productId = ?''',(self.id,orderid))
+    def removeorder(self,productId):
+        order = Order(self._email)
+        order.removeorder(productId)
         return
 
     def get_order(self):
         ords = Order(self._email)
         products,price = ords.getorders()
-        return json.dumps({"status":200,"products":products,"price":price})
+        return {"status":200,"products":products,"price":price}
     
     def _transaction(self,type_=None,number=None):
         #call transaction here

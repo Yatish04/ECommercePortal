@@ -36,11 +36,10 @@ class Order(object):
     def removeorder(self,productId):
         with sqlite3.connect('database.db') as conn:
             cur = conn.cursor()
-            cur.execute("DELETE FROM orders WHERE productId = ? AND  userId = ? ", (int(productId),int(self._cstid)))
-            cur.execute("UPDATE products SET stock = stock + ? WHERE productId = ?'''",(1,int(self._cstid),))
+            cur.execute("DELETE FROM orders WHERE productId = ? AND  custid = ? ", (int(productId),int(self._cstid)))
+            cur.execute("UPDATE products SET stock = stock + ? WHERE productId = ?",(1,int(self._cstid),))
             conn.commit()
-            conn.close()
-            cur.close()
+            
         return
 
     def place_order(self,productId):
