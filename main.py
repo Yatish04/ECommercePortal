@@ -3,6 +3,7 @@ import sqlite3, hashlib, os
 from werkzeug.utils import secure_filename
 from Customer import *
 from admin import *
+from pymongo import *
 
 app = Flask(__name__)
 app.secret_key = 'random string'
@@ -133,6 +134,34 @@ def remove():
         
     
     return render_template('remove.html', data=data)
+
+
+@app.route("/review",methods=["POST"])
+def review():
+    data = request.get_json()
+    # import pdb; pdb.set_trace()
+    productid = data["productid"]
+    email = session["email"]
+    review = data["review"]
+    user = email.split("@")
+    username = user[0]
+    client = MongoClient('localhost', 27017)
+    db = client.lab
+    cur = db.labs.find({"id":str(productid)})
+    out = list(cur)
+    if(len(out)==0):
+        new_dict = {"id":str(productid),username:review}
+        db.labs.insert_one(new_dict)
+    else:
+        dict_ = out[0]
+        dict_[user[0]] = review
+        db.labs.update_one({"id":str(productid)},{"$set":dict_},upsert=False)
+
+    return json.dumps({"status":200})
+    
+
+
+
 
 @app.route("/removeItem")
 def removeItem():
@@ -270,7 +299,23 @@ def productDescription():
         cur.execute('SELECT productId, name, price, description, image, stock FROM products WHERE productId = ' + productId)
         productData = cur.fetchone()
     conn.close()
-    return render_template("productDescription.html", data=productData, loggedIn = loggedIn, firstName = firstName, noOfItems = noOfItems)
+    
+    client = MongoClient()
+    client = MongoClient('localhost', 27017)
+    db = client.lab
+
+    cur = db.labs.find({"id":str(productId)})
+    try:
+        review = list(cur)[0]
+    except:
+        review={}
+    try:
+        review.pop("id")
+        review.pop("_id")
+    except:
+        pass
+
+    return render_template("productDescription.html", data=productData, loggedIn = loggedIn, firstName = firstName, noOfItems = noOfItems,review=json.dumps(review))
 
 
 ############################################################################

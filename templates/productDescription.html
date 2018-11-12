@@ -4,6 +4,52 @@
 <title>Product Description</title>
 <link rel="stylesheet" href={{url_for('static', filename='css/productDescription.css')}} />
 <link rel="stylesheet" href={{ url_for('static', filename='css/topStyle.css')}} />
+
+<script>window.onload = function(){
+var review = JSON.parse('{{ review|safe }}');
+var inner="";
+for (var key in review) {
+
+  if (review.hasOwnProperty(key)) {
+    var val = review[key];
+	inner+="<h5 style=\"display:inline\">" +key.toString()+":</h6> <p style=\"display: inline\">"+val.toString()+"</p><br/>"
+  }
+}
+document.getElementById("reviews").innerHTML=inner;
+
+
+
+
+}
+function addedreview(){
+
+var review = document.getElementById("newreview").value;
+let querystring = window.location.search.substring(1);
+productid = querystring.split("=")[1];
+var request=new XMLHttpRequest();
+request.onreadystatechange=function(){
+        if(request.readyState===XMLHttpRequest.DONE){
+            if(request.status===200)
+            {
+              
+			   alert('Thanks for your review!!');
+               
+            }
+            else{
+                alert('Review not submitted!! Please login to comment');
+            }
+        }
+};
+request.open('POST','http://127.0.0.1:5000/review',true);
+request.setRequestHeader('Content-Type','application/json');
+console.log(review);
+request.send(JSON.stringify({review:review,productid:productid}));
+
+}
+	
+</script>
+
+
 </head>
 <body>
 <div id="title">
@@ -70,7 +116,13 @@
 
 	<div style="position:relative; height: 200px;">
 		<h4>Reviews</h4>
+		<div id="reviews">
 		
+	</div>
+	</div>
+	<div>
+		<textarea id="newreview"></textarea>
+		<button onclick="addedreview()">submit</button>
 	</div>
 </div>
 </body>
