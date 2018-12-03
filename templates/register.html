@@ -5,8 +5,8 @@
 </script>
 </head>
 <body>
-<form action="/register" method="POST" onsubmit="return validate()">
-    <p>Email: <input type="email" name="email"></p>
+<form action="/register" method="POST" onsubmit="return validate()&&validatezips()">
+    <p>Email: <input type="email" name="email" id="email"></p>
 
     <P>Password: <input type="password" name="password" id="password" required></p>
 
@@ -16,11 +16,11 @@
     <p>Last Name: <input type="text" name="lastName"></p>
     <p>Address Line 1: <input type="text" name="address1"></p>
     <p>Address Line 2: <input type="text" name="address2"></p>
-    <p>Zipcode: <input type="text" name="zipcode"></p>
+    <p>Zipcode: <input type="text" name="zipcode" id="pin"></p>
     <p>City: <input type="text" name="city"></p>
     <p>State: <input type="text" name="state"></p>
     <p>Country: <input type="text" name="country"></p>
-    <p>Phone Number: <input type="text" name="phone"></p>
+    <p>Phone Number: <input type="text" name="phone" id="phone"></p>
 
     <p><input type="submit" value="Register"></p>
 
