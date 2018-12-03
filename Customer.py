@@ -10,16 +10,15 @@ class Customer(object):
             self.status = self._login(email,password)
         else:
             self._email = email
+            self._address = self.get_address(email)
             self.status = True
 
-        self._email = ""
         if email is not None:
             self._email = email
 
         self._phoneno = 0
         
         self._name = ""
-        self._address = ""
         self.db = sqlite3.connect('database.db')
 	
     
@@ -50,7 +49,7 @@ class Customer(object):
             order = Order(self._email)
             products,totalprice = self.cart()
             for row in products:
-                order.place_order(int(row[0]))
+                order.place_order(int(row[0]),row[1],self._address)
         
         return {"status":200,"totalprice":totalprice}
 
@@ -71,8 +70,17 @@ class Customer(object):
         
         return msg
 
+    def get_address(self,email):
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+        self.email = email
+        cur.execute('SELECT address1,address2,zipcode,city,state,country,phone FROM users WHERE email = ? ',(email,))
+        rows = cur.fetchall()
+        address = rows[0][0]+" "+rows[0][1]+" "+ rows[0][2]+" "+rows[0][3]+" "+rows[0][4]+" "+rows[0][5]+" "
+        con.close()
+        return address
+
     def _login(self,email, password):
-        import pdb; pdb.set_trace()
         con = sqlite3.connect('database.db')
         cur = con.cursor()
         self.email = email

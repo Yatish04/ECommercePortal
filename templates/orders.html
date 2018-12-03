@@ -1,0 +1,33 @@
+<html lang="en">
+<head>
+    <link href="static/main.css" rel="stylesheet" type="text/css" media="all">
+</head>
+    <body>
+    {%if users%}
+      <div class="users" style="margin-left:20%">
+      <h2>List Of Confirmed Orders</h2>
+      <table style="width:100%;"
+           <tr>
+              <td><b>shipperName</b></td>
+            
+            <td><b>customerID</b></td>
+            <td><b>productName</b></td>
+            <td><b>sellerName</b></td>
+            <td><b>Address</b></td>  
+          </tr>           
+        {%for user in users%}
+          <tr>
+            <td>{{user[0]}}</td>
+            <td>{{user[1]}}</td>
+            <td>{{user[2]}}</td>
+            <td>{{user[3]}}</td>
+            <td>{{user[4]}}</td>
+          </tr>   
+        {%endfor%}
+      </table>
+    </div>
+    {%endif%}
+
+
+</body>
+</html>

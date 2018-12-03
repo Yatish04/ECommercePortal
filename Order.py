@@ -37,21 +37,27 @@ class Order(object):
         with sqlite3.connect('database.db') as conn:
             cur = conn.cursor()
             cur.execute("DELETE FROM orders WHERE productId = ? AND  custid = ? ", (int(productId),int(self._cstid)))
-            cur.execute("UPDATE products SET stock = stock + ? WHERE productId = ?",(1,int(self._cstid),))
+            cur.execute("UPDATE products SET stock = stock + ? WHERE productId = ?",(1,int(productId),))
             conn.commit()
             
         return
 
-    def place_order(self,productId):
+    def place_order(self,productId,productname,address):
         conn = sqlite3.connect('database.db') 
         cursor = conn.cursor()
         userId = self._cstid
-        cursor.execute(''' SELECT * FROM kart WHERE userId = ?''',(int(userId),)) # select all products
-
-        cursor.execute(''' INSERT INTO orders(custid,productId) VALUES (?,?) ''',(int(userId),productId,)) # insert item id and customer id and item id
         
-        cursor.execute('''UPDATE products SET stock = stock - ? WHERE productId = ?''',(1,userId,))
-        cursor.execute('''DELETE FROM kart WHERE productId = ? AND userId = ?''',(productId,userId,))
-        conn.commit()
-        conn.close()
-        return
+        cursor.execute(''' SELECT * FROM kart WHERE userId = ?''',(int(userId),)) # select all products
+        cursor.execute('''SELECT stock FROM products WHERE productId = ?''',(int(productId),))
+        tupstock=cursor.fetchall()
+        stock = int(tupstock[0][0])
+        if stock>0:
+            cursor.execute(''' INSERT INTO orders(custid,productId) VALUES (?,?) ''',(int(userId),int(productId),)) # insert item id and customer id and item id
+            cursor.execute('''UPDATE products SET stock = stock - ? WHERE productId = ?''',(1,int(productId),))
+            cursor.execute('''DELETE FROM kart WHERE productId = ? AND userId = ?''',(int(productId),int(userId),))
+            cursor.execute(''' INSERT INTO ships(customerid,productid,shipperid,sellerid,address) VALUES (?,?,?,?,?) ''',(int(userId),productname,"bluedart",1,address,)) 
+            conn.commit()
+            conn.close()
+            return
+        else:
+            raise Exception("No more stocks left")

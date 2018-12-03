@@ -3,6 +3,7 @@ import sqlite3, hashlib, os
 from werkzeug.utils import secure_filename
 from Customer import *
 from admin import *
+from seller import *
 from pymongo import *
 
 app = Flask(__name__)
@@ -264,6 +265,8 @@ def updateProfile():
         state = request.form['state']
         country = request.form['country']
         phone = request.form['phone']
+        if(len(phone)!=10):
+            return InvalidUsage("")
         Customer.update(firstName, lastName, address1, address2, zipcode, city, state, country, phone, email)
         return redirect(url_for('editProfile'))
 
@@ -372,8 +375,11 @@ def checkout():
         return redirect(url_for('loginForm'))
 
     cust = Customer(session["email"])
-    data = cust.placingorder()
-    return render_template("checkout.html",totalprice=data["totalprice"])
+    try:
+        data = cust.placingorder()
+        return render_template("checkout.html",totalprice=data["totalprice"])
+    except:
+        return render_template("error.html",msg="Sorry the stocks are unavailable now :( ")
 
 
 
@@ -409,19 +415,73 @@ def registrationForm():
     return render_template("register.html")
 
 
+@app.route('/sellers/login',methods=['POST', 'GET'])
+def seller_login():
+    return render_template('index.html')
+
+
+
+@app.route('/sellers/orders',methods=['POST','GET'])
+def ordersview():
+    if request.method=='POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        users = Seller.verify(username,password)
+        if len(users)!=0:
+            session["type"] = "seller"
+            session["id"]=users[0][0]
+            users = Seller.retrieveUsers(username,password)
+            return render_template('orders.html', users=users)
+        else:
+            return render_template('register_seller.html')
+    else:
+        return "<b> Oops!!! You are not supposed to be Here  :-(. </b> "
+
+@app.route('/sellers/update',methods=["GET","POST"])
+def seller_update():
+    if request.method == "GET":
+        if "type" in session and session["type"] == "seller":
+            admin = Admin()
+            categories = admin.add()
+            return render_template('update.html',categories=categories)
+    if request.method == "POST":
+        if "type" in session and session["type"] == "seller":
+            name = request.form['name']
+            price = float(request.form['price'])
+            description = request.form['description']
+            stock = int(request.form['stock'])
+            categoryId = int(request.form['category'])
+
+            #Uploading image procedure
+            image = request.files['image']
+            if image and allowed_file(image.filename):
+                filename = secure_filename(image.filename)
+                image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            imagename = filename
+
+            if "type" in session and session["type"] == "seller":
+                msg = Seller.update(name, price, description, imagename, stock, categoryId)
+                Seller.updatetable(name,int(session["id"]))
+                return redirect(url_for('root'))
+
+            else:
+                raise InvalidUsage('Invalid Credentials', status_code=415)
+
+    return "<b> Oops!!! You are not supposed to be Here  :-(. </b> "
+
+
 
 @app.route('/account/orders')
 def myorders():
-    if "email" in session and session["type"] == "cst":
+    if "email" in session :
         #call orders
         cust = Customer(session["email"])
         orders = cust.get_order()
     loggedIn, firstName, noOfItems = getLoginDetails()
-    # import pdb; pdb.set_trace()
     # load html
     return render_template("manageorder.html", products = orders["products"], totalPrice=orders["price"], loggedIn=loggedIn, firstName=firstName, noOfItems=noOfItems)
 
-    return json.dumps(orders)
 
 def allowed_file(filename):
     return '.' in filename and \
