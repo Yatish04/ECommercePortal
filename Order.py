@@ -1,4 +1,6 @@
 import sqlite3
+from datetime import datetime
+
 class Order(object):
     def __init__(self,email):
         self._cstid = self._getId(email)
@@ -46,13 +48,13 @@ class Order(object):
         conn = sqlite3.connect('database.db') 
         cursor = conn.cursor()
         userId = self._cstid
-        
+        date = datetime.now().strftime("%Y-%m-%d")
         cursor.execute(''' SELECT * FROM kart WHERE userId = ?''',(int(userId),)) # select all products
         cursor.execute('''SELECT stock FROM products WHERE productId = ?''',(int(productId),))
         tupstock=cursor.fetchall()
         stock = int(tupstock[0][0])
         if stock>0:
-            cursor.execute(''' INSERT INTO orders(custid,productId) VALUES (?,?) ''',(int(userId),int(productId),)) # insert item id and customer id and item id
+            cursor.execute(''' INSERT INTO orders(custid,productId,date) VALUES (?,?,?) ''',(int(userId),int(productId),date,)) # insert item id and customer id and item id
             cursor.execute('''UPDATE products SET stock = stock - ? WHERE productId = ?''',(1,int(productId),))
             cursor.execute('''DELETE FROM kart WHERE productId = ? AND userId = ?''',(int(productId),int(userId),))
             cursor.execute(''' INSERT INTO ships(customerid,productid,shipperid,sellerid,address) VALUES (?,?,?,?,?) ''',(int(userId),productname,"bluedart",1,address,)) 

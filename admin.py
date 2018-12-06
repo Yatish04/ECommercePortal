@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime,timedelta
 
 
 class Admin(object):
@@ -31,10 +32,26 @@ class Admin(object):
                 cur = conn.cursor()
                 cur.execute('''INSERT INTO products (name, price, description, image, stock, categoryId) VALUES (?, ?, ?, ?, ?, ?)''', (name, price, description, imagename, stock, categoryId,))
                 conn.commit()
+                cur.execute(''' SELECT productId FROM products WHERE name = ?''',(name,))
+                prod_id = int(cur.fetchall()[0][0])
                 msg="added successfully"
             except:
                 msg="error occured"
                 conn.rollback()
+        
+
+        
+
+        with sqlite3.connect('database.db') as conn:
+            try:
+                cur = conn.cursor()
+                cur.execute('''INSERT INTO add_item (adminid,productid) VALUES (?, ?)''', (1,prod_id,))
+                conn.commit()
+                msg="added successfully"
+            except:
+                msg="error occured"
+                conn.rollback()
+        
         conn.close()
         print(msg)
         return msg
@@ -59,3 +76,24 @@ class Admin(object):
                 msg = "Error occured"
         conn.close()
         return msg
+
+    def sold_items(self):
+        with sqlite3.connect('database.db') as conn:
+            date = datetime.now().strftime("%Y-%m-%d")
+            oldtime = (datetime.now() -  timedelta(days=30)).strftime("%Y-%m-%d")
+            total=0.0
+            rows=[]
+            try:
+                cur = conn.cursor()
+
+                cur.execute(''' SELECT * FROM orders WHERE date >= Datetime(?) AND date <= Datetime(?) ''',(oldtime,date,))
+                rows = cur.fetchall()
+                for i in rows:
+                    cur.execute(''' SELECT price FROM products WHERE productId = ?''',(i[1],))
+                    total+=cur.fetchall()[0][0]
+                conn.commit()
+                msg="added successfully"
+            except:
+                msg="error occured"
+                conn.rollback()
+        return {"items":len(rows),"total":total}

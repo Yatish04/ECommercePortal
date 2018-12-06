@@ -122,9 +122,7 @@ class Customer(object):
         status  = trans.get_status()
         return status
 
-    def _review(self):
-        #mongo db
-        return
+
 
     def cart(self):
         totalPrice=0

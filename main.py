@@ -137,6 +137,12 @@ def remove():
     return render_template('remove.html', data=data)
 
 
+@app.route("/admin/sales")
+def sales():
+    admin = Admin()
+    data = admin.sold_items()
+    return "Total Number of Items sold are :"+"<b>"+str(data["items"])+"</b><br/><br/> Total Cost of Items sold are :"+"<b>"+str(data["total"])+" $ </b>"
+
 @app.route("/review",methods=["POST"])
 def review():
     data = request.get_json()
