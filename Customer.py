@@ -96,7 +96,7 @@ class Customer(object):
         with sqlite3.connect('database.db') as con:
             try:
                 cur = con.cursor()
-                cur.execute('INSERT INTO users (password, email, firstName, lastName, address1, address2, zipcode, city, state, country, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', password, email, firstName, lastName, address1, address2, zipcode, city, state, country, phone)
+                cur.execute('INSERT INTO users (password, email, firstName, lastName, address1, address2, zipcode, city, state, country, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',(password, email, firstName, lastName, address1, address2, zipcode, city, state, country, phone,))
                 con.commit()
 
                 msg = "Registered Successfully"
